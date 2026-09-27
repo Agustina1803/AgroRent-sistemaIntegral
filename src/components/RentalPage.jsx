@@ -1,52 +1,40 @@
-import { useState } from 'react';
+import { useMemo, useState, useSyncExternalStore } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-const allMachines = [
-  { id: 1, name: 'John Deere S780', type: 'Cosechadora', brand: 'John Deere', price: 45000, rating: 4.9, reviews: 23, location: 'Tucumán', available: true, img: 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=400&h=280&fit=crop', desc: 'Cosechadora de alta capacidad para granos y cereales. Motor 543 HP.' },
-  { id: 2, name: 'Case IH Magnum 340', type: 'Tractor', brand: 'Case IH', price: 32000, rating: 4.8, reviews: 18, location: 'Santiago del Estero', available: true, img: 'https://images.unsplash.com/photo-1592841200221-a6898f307baa?w=400&h=280&fit=crop', desc: 'Tractor de alta potencia con transmisión CVT. Ideal para laboreo intensivo.' },
-  { id: 3, name: 'Massey Ferguson 278', type: 'Pulidora de Arroz', brand: 'Massey Ferguson', price: 18000, rating: 4.7, reviews: 12, location: 'Salta', available: true, img: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=400&h=280&fit=crop', desc: 'Pulidora de arroz de alta eficiencia. Capacidad: 8 ton/h.' },
-  { id: 4, name: 'New Holland CR10.90', type: 'Cosechadora', brand: 'New Holland', price: 52000, rating: 5.0, reviews: 31, location: 'Tucumán', available: false, img: 'https://images.unsplash.com/photo-1605338195758-f8e50b670e65?w=400&h=280&fit=crop', desc: 'La cosechadora más potente de la gama. Torque de 653 HP.' },
-  { id: 5, name: 'Valtra BH 194', type: 'Cargadora', brand: 'Valtra', price: 22000, rating: 4.6, reviews: 9, location: 'Catamarca', available: true, img: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400&h=280&fit=crop', desc: 'Cargadora frontal con capacidad de 2.5m³. Equipo versátil.' },
-  { id: 6, name: 'Jacto Uniport 3030', type: 'Pulidora', brand: 'Jacto', price: 15000, rating: 4.5, reviews: 14, location: 'Tucumán', available: true, img: 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?w=400&h=280&fit=crop', desc: 'Pulidora autopropulsada de precisión para cultivos extensivos.' },
-  { id: 7, name: 'Claas Lexion 8700', type: 'Cosechadora', brand: 'Claas', price: 48000, rating: 4.9, reviews: 27, location: 'Tucumán', available: true, img: 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=400&h=280&fit=crop', desc: 'Cosechadora premium con sistema CEMOS automático. 790 HP.' },
-  { id: 8, name: 'Fendt 1050 Vario', type: 'Tractor', brand: 'Fendt', price: 38000, rating: 4.8, reviews: 15, location: 'Salta', available: true, img: 'https://images.unsplash.com/photo-1592841200221-a6898f307baa?w=400&h=280&fit=crop', desc: 'Tractor de alta gama con transmisión Vario. 517 HP.' },
-  { id: 9, name: 'AMAZONE Pantera 453', type: 'Pulidora', brand: 'Amazone', price: 20000, rating: 4.6, reviews: 11, location: 'Santiago del Estero', available: true, img: 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?w=400&h=280&fit=crop', desc: 'Pulidora autopropulsada con sistema SmartCenter.' },
-];
-
-const categories = ['Todas', 'Cosechadora', 'Tractor', 'Pulidora de Arroz', 'Pulidora', 'Cargadora'];
-const locations = ['Todas', 'Tucumán', 'Santiago del Estero', 'Salta', 'Catamarca'];
+import { useAuth } from './AuthContext';
+import { CATEGORIES, LOCATIONS, filterMachines } from './machinesStore';
+import { addCartItem, addDays, cartTotals, daysBetween, readCart, removeCartItem, subscribe, toISODate } from './rentalsStore';
 
 export default function RentalPage() {
   const [filters, setFilters] = useState({ category: 'Todas', location: 'Todas', dateFrom: '', dateTo: '', maxPrice: 60000 });
-  const [cart, setCart] = useState([]);
+  const { user } = useAuth();
   const [showCart, setShowCart] = useState(false);
-  const [selectedMachine, setSelectedMachine] = useState(null);
   const navigate = useNavigate();
 
-  const filtered = allMachines.filter(m => {
-    if (filters.category !== 'Todas' && m.type !== filters.category) return false;
-    if (filters.location !== 'Todas' && m.location !== filters.location) return false;
-    if (m.price > filters.maxPrice) return false;
-    return true;
-  });
+  const userId = user?.id;
+  const cart = useSyncExternalStore(subscribe, () => readCart(userId));
 
-  const addToCart = (machine) => {
-    if (!cart.find(c => c.id === machine.id)) {
-      setCart([...cart, { ...machine, days: 3, subtotal: machine.price * 3 }]);
+  const filtered = filterMachines(filters);
+
+  const rentalWindow = useMemo(() => {
+    const from = filters.dateFrom || toISODate(new Date());
+    const to = filters.dateTo || toISODate(addDays(new Date(), 3));
+    return { dateFrom: from, dateTo: to, days: daysBetween(from, to) };
+  }, [filters.dateFrom, filters.dateTo]);
+
+  const addToCart = machine => {
+    if (!userId) {
+      navigate('/login', { state: { from: { pathname: '/catalogo' } } });
+      return;
     }
+    addCartItem(userId, machine, rentalWindow);
   };
 
-  const removeFromCart = (id) => {
-    setCart(cart.filter(c => c.id !== id));
+  const removeFromCart = machineId => {
+    removeCartItem(userId, machineId);
   };
 
-  const daysBetween = (from, to) => {
-    if (!from || !to) return 3;
-    const diff = Math.ceil((new Date(to) - new Date(from)) / (1000 * 60 * 60 * 24));
-    return diff > 0 ? diff : 1;
-  };
-
-  const days = daysBetween(filters.dateFrom, filters.dateTo);
+  const days = rentalWindow.days;
+  const totals = cartTotals(cart);
 
   return (
     <div className="rental-page">
@@ -61,14 +49,14 @@ export default function RentalPage() {
             <div className="rental-page__filter">
               <label>Categoría</label>
               <select value={filters.category} onChange={e => setFilters({ ...filters, category: e.target.value })}>
-                {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
 
             <div className="rental-page__filter">
               <label>Ubicación</label>
               <select value={filters.location} onChange={e => setFilters({ ...filters, location: e.target.value })}>
-                {locations.map(l => <option key={l} value={l}>{l}</option>)}
+                {LOCATIONS.map(l => <option key={l} value={l}>{l}</option>)}
               </select>
             </div>
 
@@ -146,7 +134,7 @@ export default function RentalPage() {
                       disabled={!m.available}
                       onClick={() => m.available && addToCart(m)}
                     >
-                      {cart.find(c => c.id === m.id) ? 'Añadido ✓' : 'Alquilar'}
+                      {cart.find(c => c.machineId === m.id) ? 'Añadido ✓' : 'Alquilar'}
                     </button>
                   </div>
                 </div>
@@ -175,21 +163,21 @@ export default function RentalPage() {
               <>
                 <div className="rental-page__cart-items">
                   {cart.map(item => (
-                    <div className="rental-page__cart-item" key={item.id}>
+                      <div className="rental-page__cart-item" key={item.machineId}>
                       <img src={item.img} alt={item.name} />
                       <div>
                         <h4>{item.name}</h4>
-                        <p>{item.price.toLocaleString('es-AR')}/día × {days} días</p>
-                        <strong>${(item.price * days).toLocaleString('es-AR')}</strong>
+                        <p>{item.price.toLocaleString('es-AR')}/día × {item.days} días</p>
+                        <strong>${(item.price * item.days).toLocaleString('es-AR')}</strong>
                       </div>
-                      <button onClick={() => removeFromCart(item.id)} className="rental-page__cart-remove">✕</button>
+                      <button onClick={() => removeFromCart(item.machineId)} className="rental-page__cart-remove" aria-label={`Quitar ${item.name} del carrito`}>✕</button>
                     </div>
                   ))}
                 </div>
                 <div className="rental-page__cart-summary">
-                  <div className="rental-page__cart-row"><span>Subtotal</span><span>${(cart.reduce((a, c) => a + c.price * days, 0)).toLocaleString('es-AR')}</span></div>
-                  <div className="rental-page__cart-row"><span>Seguro (5%)</span><span>${(cart.reduce((a, c) => a + c.price * days, 0) * 0.05).toLocaleString('es-AR')}</span></div>
-                  <div className="rental-page__cart-row rental-page__cart-row--total"><span>Total estimado</span><span>${(cart.reduce((a, c) => a + c.price * days, 0) * 1.05).toLocaleString('es-AR')}</span></div>
+                  <div className="rental-page__cart-row"><span>Subtotal</span><span>${totals.subtotal.toLocaleString('es-AR')}</span></div>
+                  <div className="rental-page__cart-row"><span>Seguro (5%)</span><span>${totals.seguro.toLocaleString('es-AR')}</span></div>
+                  <div className="rental-page__cart-row rental-page__cart-row--total"><span>Total estimado</span><span>${totals.total.toLocaleString('es-AR')}</span></div>
                 </div>
                 <button className="btn btn--orange btn--full" onClick={() => navigate('/carrito')}>
                   Finalizar Reserva
@@ -201,23 +189,6 @@ export default function RentalPage() {
         </div>
       )}
 
-      {selectedMachine && (
-        <div className="rental-page__detail-overlay" onClick={() => setSelectedMachine(null)}>
-          <div className="rental-page__detail-panel" onClick={e => e.stopPropagation()}>
-            <button className="rental-page__detail-close" onClick={() => setSelectedMachine(null)}>✕</button>
-            <img src={selectedMachine.img} alt={selectedMachine.name} className="rental-page__detail-img" />
-            <h2>{selectedMachine.name}</h2>
-            <p>{selectedMachine.desc}</p>
-            <div className="rental-page__detail-specs">
-              <div><strong>Tipo:</strong> {selectedMachine.type}</div>
-              <div><strong>Marca:</strong> {selectedMachine.brand}</div>
-              <div><strong>Ubicación:</strong> {selectedMachine.location}</div>
-              <div><strong>Precio:</strong> ${selectedMachine.price.toLocaleString('es-AR')}/día</div>
-            </div>
-            <button className="btn btn--primary btn--full" onClick={() => { addToCart(selectedMachine); setSelectedMachine(null); }}>Añadir al Carrito</button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -1,35 +1,37 @@
-import { useState } from 'react';
+import { useMemo, useState, useSyncExternalStore } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from './AuthContext';
+import { RATEABLE_STATUS, RENTAL_STATUS, allRentals, formatRange, rentalStatus, subscribe } from './rentalsStore';
 
-const activeRentals = [
-  {
-    id: 1,
-    machine: 'Case IH Magnum 340',
-    type: 'Tractor',
-    owner: 'Carlos García',
-    dates: '10/03 - 15/03/2026',
-    status: 'en curso',
-    location: 'Santiago del Estero',
-    img: 'https://images.unsplash.com/photo-1592841200221-a6898f307baa?w=200&h=140&fit=crop',
-  },
-  {
-    id: 2,
-    machine: 'John Deere S780',
-    type: 'Cosechadora',
-    owner: 'AgroRent S.A.',
-    dates: '20/03 - 25/03/2026',
-    status: 'próximo',
-    location: 'Tucumán',
-    img: 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=200&h=140&fit=crop',
-  },
-];
+const STATUS_CLASS = {
+  [RENTAL_STATUS.EN_CURSO]: 'pending',
+  [RENTAL_STATUS.PROXIMO]: 'confirmed',
+  [RENTAL_STATUS.COMPLETADO]: 'done',
+};
 
 export default function ClientDashboard() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [tab, setTab] = useState('rentals');
   const [machineStars, setMachineStars] = useState(0);
   const [serviceStars, setServiceStars] = useState(0);
   const [comment, setComment] = useState('');
   const [reportType, setReportType] = useState('');
   const [reportSent, setReportSent] = useState(false);
+
+  const userId = user?.id;
+  const all = useSyncExternalStore(subscribe, allRentals);
+
+  const rentals = useMemo(
+    () =>
+      all
+        .filter(r => r.userId === userId)
+        .map(r => ({ ...r, status: rentalStatus(r), dates: formatRange(r.dateFrom, r.dateTo) }))
+        .sort((a, b) => a.dateFrom.localeCompare(b.dateFrom)),
+    [all, userId]
+  );
+
+  const rateableRentals = rentals.filter(r => RATEABLE_STATUS.includes(r.status));
 
   const tabs = [
     { id: 'rentals', label: 'Mis Alquileres', icon: '🚜' },
@@ -84,12 +86,22 @@ export default function ClientDashboard() {
           {tab === 'rentals' && (
             <>
               <h2>Mis Alquileres</h2>
+              {rentals.length === 0 ? (
+                <div className="dashboard__empty">
+                  <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="var(--gray-border)" strokeWidth="1.5">
+                    <path d="M3 17h18M5 17l1.5-7h11L19 17M5 17v2M19 17v2M9 10V7a3 3 0 016 0v3"/>
+                  </svg>
+                  <h3>Todavía no tenés alquileres</h3>
+                  <p>Cuando firmes un contrato, tus reservas van a aparecer acá con su estado y las fechas.</p>
+                  <button className="btn btn--orange" onClick={() => navigate('/catalogo')}>Ver catálogo</button>
+                </div>
+              ) : (
               <div className="dashboard__rental-cards">
-                {activeRentals.map(r => (
+                {rentals.map(r => (
                   <div className="dashboard__rental-card" key={r.id}>
                     <div className="dashboard__rental-img">
                       <img src={r.img} alt={r.machine} />
-                      <span className={`dashboard__status dashboard__status--${r.status === 'en curso' ? 'pending' : 'confirmed'}`}>
+                      <span className={`dashboard__status dashboard__status--${STATUS_CLASS[r.status]}`}>
                         {r.status}
                       </span>
                     </div>
@@ -118,6 +130,7 @@ export default function ClientDashboard() {
                   </div>
                 ))}
               </div>
+              )}
             </>
           )}
 
@@ -125,7 +138,16 @@ export default function ClientDashboard() {
             <>
               <h2>Calificá Tu Experiencia</h2>
               <div className="dashboard__rate-section">
-                {activeRentals.filter(r => r.status === 'en curso').map(r => (
+                {rateableRentals.length === 0 && (
+                  <div className="dashboard__empty">
+                    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="var(--gray-border)" strokeWidth="1.5">
+                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <h3>No hay alquileres para calificar</h3>
+                    <p>Podés calificar una máquina cuando el alquiler está en curso o ya terminó.</p>
+                  </div>
+                )}
+                {rateableRentals.map(r => (
                   <div className="dashboard__rate-card" key={r.id}>
                     <div className="dashboard__rate-header">
                       <img src={r.img} alt={r.machine} />
