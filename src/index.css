@@ -1,0 +1,98 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+
+:root {
+  --green-primary: #1E6B27;
+  --green-secondary: #2A8038;
+  --green-light: #3a9e47;
+  --green-dark: #145a1b;
+  --green-bg: rgba(30, 107, 39, 0.06);
+  --orange-cta: #FF8000;
+  --orange-hover: #e67300;
+  --orange-light: rgba(255, 128, 0, 0.1);
+  --dark-text: #1F1F1F;
+  --gray-text: #4a4a4a;
+  --gray-medium: #6b6b6b;
+  --gray-light: #999;
+  --gray-border: #e0e0d8;
+  --bg-cream: #F7F7F2;
+  --bg-white: #ffffff;
+  --red-alert: #D9383A;
+  --red-light: rgba(217, 56, 58, 0.08);
+  --shadow-sm: 0 1px 3px rgba(31, 31, 31, 0.06);
+  --shadow-md: 0 4px 12px rgba(31, 31, 31, 0.08);
+  --shadow-lg: 0 8px 30px rgba(31, 31, 31, 0.1);
+  --shadow-xl: 0 20px 60px rgba(31, 31, 31, 0.12);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --font-display: 'Outfit', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--dark-text);
+  background: var(--bg-cream);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  font-family: var(--font-body);
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+input, select, textarea {
+  font-family: var(--font-body);
+  outline: none;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-cream);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gray-light);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-medium);
+}
