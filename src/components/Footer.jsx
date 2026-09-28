@@ -29,36 +29,30 @@ export default function Footer() {
                 <span>AgroRent</span>
               </div>
               <p className="footer__brand-desc">
-                La plataforma que conecta a arrendadores y productores agrícolas de la región del NOA.
-                Alquileres rápidos, transparentes y seguros.
+                Infraestructura de alquiler inteligente para la cadena agroindustrial del NOA.
               </p>
-              <div className="footer__cta-row">
-                <Link to="/arrendador" className="btn btn--primary btn--sm">Publicá tu Máquina</Link>
-                <Link to="/catalogo" className="btn btn--orange btn--sm">Alquilá Ahora</Link>
-              </div>
             </div>
 
             <div className="footer__col">
-              <h4 className="footer__col-title">Plataforma</h4>
-              <Link to="/catalogo" className="footer__link">Catálogo</Link>
-              <Link to="/arrendador" className="footer__link">Publicar Máquina</Link>
-              <Link className="footer__link" to="/#como-funciona">Cómo Funciona</Link>
-              <Link className="footer__link" to="/#faq">Preguntas Frecuentes</Link>
+              <h4 className="footer__col-title">Contacto</h4>
+              <p className="footer__link" style={{ cursor: 'default' }}>📍 Av. Aconquija 1200, Yerba Buena, Tucumán</p>
+              <p className="footer__link" style={{ cursor: 'default' }}>📞 +54 381 456-7890</p>
+              <p className="footer__link" style={{ cursor: 'default' }}>✉️ contacto@agrorent-noa.com</p>
             </div>
 
             <div className="footer__col">
-              <h4 className="footer__col-title">Empresa</h4>
-              <a className="footer__link" href="#">Sobre Nosotros</a>
-              <a className="footer__link" href="#">Blog</a>
-              <a className="footer__link" href="#">Trabaja con Nosotros</a>
-              <a className="footer__link" href="#">Contacto</a>
+              <h4 className="footer__col-title">Navegación</h4>
+              <a className="footer__link" href="#inicio">Inicio</a>
+              <a className="footer__link" href="#solucion">La Plataforma</a>
+              <a className="footer__link" href="#foda">Ventajas</a>
+              <a className="footer__link" href="#equipo">Equipo</a>
             </div>
 
             <div className="footer__col">
               <h4 className="footer__col-title">Legal</h4>
               <a className="footer__link" href="#">Términos y Condiciones</a>
               <a className="footer__link" href="#">Política de Privacidad</a>
-              <a className="footer__link" href="#">Defensa del Consumidor</a>
+              <a className="footer__link" href="#">Contratos y Certificaciones</a>
             </div>
           </div>
         </div>
@@ -66,7 +60,7 @@ export default function Footer() {
 
       <div className="footer__bottom">
         <div className="container">
-          <p>&copy; 2026 AgroRent — Tucumán, Argentina. Todos los derechos reservados.</p>
+          <p>&copy; 2026 AgroRent S.A. Todos los derechos reservados.</p>
           <div className="footer__social">
             <a href="#" aria-label="Instagram">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
